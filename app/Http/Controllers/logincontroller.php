@@ -15,15 +15,15 @@ class logincontroller extends Controller
         $username= $Request->input('u');
         $password= $Request->input('p');
         $where= array(
-            'name'=>$username,
-            'password'=> $password
-        );
+        'username'=>$username,
+        'password'=> $password
+    );
 
         $jalur= new database;
-        $hasilcek=$jalur->pull('users',$where);
+        $hasilcek = $jalur->tarik('user', $where);
 
         if($hasilcek){
-            session(['u'=>$hasilcek->name]);
+            session(['u'=>$hasilcek->username]);
             return redirect ()->intended('/home');
         }
         else{
@@ -33,8 +33,8 @@ class logincontroller extends Controller
 
     public function home(Request $Request){
         if (session('u')){
-            $jalur= new database;
-            $hello['hai']=$jalur->tampil('users');
+            $jalur = new database;
+            $hello['data'] = $jalur->tampil('user');
             return view('home', $hello);
         }
         else{
@@ -47,94 +47,158 @@ class logincontroller extends Controller
         return redirect()->intended('/');
     }
 
-    public function zano (Request $Request){
-        $data = $Request -> validate ([
-            'name' => 'required', 
-            'email' => 'required',
-            'password'=> 'required'
-        ]);
+    
+public function zano(Request $Request)
+    {
+    $us = $Request->input('u');
+    $ps = $Request->input('p');
+    $em = $Request->input('e');
+    
 
-        database::create($data);
+   $data = array(
+    'username' => $us,
+    'password' => $ps,
+    'email' => $em,
+    'level' => 'pelanggan'
+    );
 
-        session(['u'=> $data['name']]);
-        return redirect('/home')->with('success','data berhasil disimpan');
+    $jalur = new database;
+    $jalur->tambah('user', $data);
+
+    return redirect()->intended('/');
     }
 
     public function tampil(){
         return view ('/girasya');
     }
 
-    public function editview($id){
+    
+    
+    public function editview($id)
+    {
         $jalur = new database;
-        $user = $jalur->pull('users', ['id' => $id]);
+        $user = $jalur->tarik('user', ['id_user' => $id]);
+
         return view('edit', ['user' => $user]);
     }
 
     public function update(Request $request, $id)
     {
         $data = $request->validate([
-            'name' => 'required',
+            'username' => 'required',
             'email' => 'required',
             'password' => 'required'
         ]);
-        database::where('id', $id)->update($data);
+
+        $jalur = new database;
+        $jalur->ubah('user', ['id_user' => $id], $data);
+
         return redirect('/home');
     }
 
     public function delete($id)
-    {
-        database::where('id', $id)->delete();
-        return redirect('/home');
-    }
+{
+    $jalur = new database;
 
-     public function excel(Request $Request){
-        if (session('u')){
-            $tgl_awal = $Request->input('tgl_awal');
-            $tgl_akhir = $Request->input('tgl_akhir');
+    $jalur->hapus('karyawan', ['id_user' => $id]);
 
-            $jalur= new database;
-            $hello['hai']=$jalur->tampilFilter('users', $tgl_awal, $tgl_akhir);
+    $jalur->hapus('user', ['id_user' => $id]);
 
-            header("Content-Type: application/vnd.ms-excel");
-            header("Content-Disposition: attachment; filename=laporan-users.xls");
-
-            return view('home', $hello);
-        } else {
-            return redirect()->intended('/');
-        }
-    }
-
-public function pdf(Request $Request){
-    if (session('u')){
-        $tgl_awal = $Request->input('tgl_awal');
-        $tgl_akhir = $Request->input('tgl_akhir');
-
-        $jalur= new database;
-        $hello['hai']=$jalur->tampilFilter('users', $tgl_awal, $tgl_akhir);
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('home', $hello);
-        return $pdf->download('laporan-users.pdf');
-    } else {
-        return redirect()->intended('/');
-    }
+    return redirect('/home');
 }
 
-public function aksitanggal(Request $Request)
+
+
+    public function karyawan()
     {
-        if (session('u')){
-            $tgl_awal = $Request->input('tgl_awal');
-            $tgl_akhir = $Request->input('tgl_akhir');
+        $jalur = new database;
 
-            $jalur = new database;
+        $data['karyawan'] = $jalur->tampil('karyawan');
+        $data['jabatan'] = $jalur->tampil('jabatan');
+        $data['agama'] = $jalur->tampil('agama');
 
-            if ($tgl_awal && $tgl_akhir) {
-                $hello['hai'] = $jalur->tampilFilter('users', $tgl_awal, $tgl_akhir);
-            } else {
-                $hello['hai'] = $jalur->tampil('users');
-            }
-            return view('home', $hello);
-        } else {
+        return view('karyawan', $data);
+    }
+
+
+    public function tkry()
+    {
+        $jalur = new database;
+
+        $data['jabatan'] = $jalur->tampil('jabatan');
+        $data['agama'] = $jalur->tampil('agama');
+
+        return view('tkry', $data);
+    }
+ 
+    
+
+    public function aksi_tkry(Request $Request)
+    {
+        $nama = $Request->input('nama');
+        $alamat = $Request->input('alamat');
+        $jk = $Request->input('jk');
+        $jb = $Request->input('jabatan');
+        $ag = $Request->input('agama');
+
+        $Kelvin = new database;
+
+        $y = array('username' => session('u'));
+        $cek = $Kelvin->tarik('user', $y);
+
+        if (!$cek) {
             return redirect()->intended('/');
         }
+
+        $kry = array(
+            'id_user' => $cek->id_user,
+            'nama_kry' => $nama,
+            'alamat_kry' => $alamat,
+            'jk_kry' => $jk,
+            'id_jabatan' => $jb,
+            'id_agama' => $ag
+        );
+
+        $Kelvin->tambah('karyawan', $kry);
+
+        return redirect()->intended('/karyawan');
     }
+
+    public function tplg()
+    {
+        $jalur = new database;
+        $data['user'] = $jalur->tampil('user');
+
+        return view('tplg', $data);
+    }
+
+    
+    public function aksi_tplg(Request $Request)
+    {
+        $nama = $Request->input('nama');
+        $alamat = $Request->input('alamat');
+        $no_hp = $Request->input('no_hp');
+
+        $data = array(
+            'nama_plg' => $nama,
+            'alamat_plg' => $alamat,
+            'no_hp' => $no_hp
+        );
+
+        $jalur = new database;
+        $jalur->tambah('pelanggan', $data);
+
+        return redirect('/pelanggan');
+    }
+    public function pelanggan()
+    {
+        $jalur = new database;
+
+        $data['pelanggan'] = $jalur->tampil('pelanggan');
+
+        return view('pelanggan', $data);
+    }
+
+
+
 }

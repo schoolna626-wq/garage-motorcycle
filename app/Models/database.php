@@ -8,9 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 class database extends Model
 {
-    public function pull($perpus, $z){
-        return DB::table($perpus)->where($z)->first();
-    }
 
     public function tampil($table)
     {
@@ -18,19 +15,23 @@ class database extends Model
         ->get();
     }
 
-    protected $table='users';
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    public function tambah($table, $data)
+    {
+        return DB::table($table)->insert($data);
+    }
 
-public function tampilFilter($table, $tgl_awal, $tgl_akhir)
-{
-    return DB::table($table)
-        ->whereBetween('created_at', [
-            $tgl_awal . ' 00:00:00',
-            $tgl_akhir . ' 23:59:59'
-        ])->get();
-}
+    public function ubah($table, $where, $data)
+    {
+        return DB::table($table)->where($where)->update($data);
+    }
+
+    public function hapus($table, $where)
+    {
+        return DB::table($table)->where($where)->delete();
+    }
+
+    public function tarik($table, $where)
+    {
+        return DB::table($table)->where($where)->first();
+    }
 }

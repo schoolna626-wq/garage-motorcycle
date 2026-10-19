@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,18 +8,18 @@
 
 <h2>EDIT</h2>
 
-<form method="POST" action="/edit/{{ $user->id }}">
+<form method="POST" action="/edit/{{ $user->id_user }}">
     @csrf
     @method('PUT')
 
-    <label for="name">Name:</label>
-    <input type="text" name="name" value="{{ $user->name }}" required><br>
+    <label for="username">Username:</label>
+    <input type="text" name="username" value="<?= $user->username ?>" required><br>
 
     <label for="email">Email:</label>
-    <input type="text" name="email" value="{{ $user->email }}" required><br>
+    <input type="email" name="email" value="{{ $user->email }}" required><br>
 
-    <label for="password">Password:</label>
-    <input type="password" name="password" value="{{ $user->password }}" required><br>
+    <label for="password">Password Baru:</label>
+    <input type="password" name="password" required><br>
 
     <button type="submit">Save</button>
 </form>
